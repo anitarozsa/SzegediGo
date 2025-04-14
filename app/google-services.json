@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "71085512246",
+    "project_id": "szegedigo",
+    "storage_bucket": "szegedigo.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:71085512246:android:b11094cd8be1b719812a97",
+        "android_client_info": {
+          "package_name": "com.example.szegedimenetrend"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAjA-qmGV8ERvPvoqkHbxv6zUrA8RNoaAI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
