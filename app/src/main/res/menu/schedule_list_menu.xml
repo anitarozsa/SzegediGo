@@ -4,20 +4,21 @@
     <item
         android:id="@+id/settings"
         android:title="Beállítások"
-
         app:showAsAction="never"
-        app:actionViewClass="android.widget.Button"/>
+        app:actionViewClass="android.widget.Button"
+        android:actionLayout="@layout/menu_item" />
+
     <item
         android:id="@+id/logOut"
         android:title="Kijelentkezés"
-
+        android:actionLayout="@layout/menu_item"
         app:showAsAction="never"
         app:actionViewClass="android.widget.Button"/>
 
     <item
         android:id="@+id/login"
         android:title="Bejelenkezés"
-
+        android:actionLayout="@layout/menu_item"
         app:showAsAction="never"
         app:actionViewClass="android.widget.Button"
         android:visible="false"/>

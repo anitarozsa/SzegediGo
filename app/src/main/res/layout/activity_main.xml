@@ -7,6 +7,7 @@
     android:layout_height="match_parent"
     android:background="@color/light"
     tools:context=".MainActivity">
+
     <ImageView
         android:id="@+id/logoImage"
         android:layout_width="150dp"
@@ -14,7 +15,6 @@
         android:src="@drawable/logo"
         android:scaleType="fitCenter"
         app:layout_constraintTop_toTopOf="parent"
-
         app:layout_constraintBottom_toTopOf="@+id/editTextUserName"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
@@ -27,7 +27,7 @@
         android:layout_marginRight="20dp"
         android:layout_marginLeft="20dp"
         android:ems="10"
-        android:hint="@string/name"
+        android:hint="@string/email_address"
         android:inputType="text"
         app:layout_constraintBottom_toTopOf="@+id/editTextPassword"
         app:layout_constraintTop_toTopOf="parent"
@@ -40,7 +40,6 @@
         android:layout_height="wrap_content"
         android:layout_marginRight="20dp"
         android:layout_marginLeft="20dp"
-
         android:layout_marginBottom="368dp"
         android:ems="10"
         android:hint="@string/password"
@@ -56,7 +55,9 @@
         android:layout_marginRight="@dimen/margin_all"
         android:layout_marginLeft="@dimen/margin_all"
         android:text="@string/login"
-
+        android:background="@drawable/button_style"
+        android:elevation="40dp"
+        style="@style/ButtonTextStyle"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
@@ -72,7 +73,9 @@
         android:layout_marginLeft="@dimen/margin_all"
         android:text="@string/registration"
         android:onClick="register"
-
+        android:background="@drawable/button_style"
+        android:elevation="40dp"
+        style="@style/ButtonTextStyle"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -87,15 +90,14 @@
         android:text="Bejelentkezés vendégként"
         android:layout_marginRight="@dimen/margin_all"
         android:layout_marginLeft="@dimen/margin_all"
-
+        android:background="@drawable/button_style"
+        android:elevation="40dp"
+        style="@style/ButtonTextStyle"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/loginButton"
         app:layout_constraintVertical_bias="0.108" />
-
-
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>
