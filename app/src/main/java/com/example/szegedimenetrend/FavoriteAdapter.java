@@ -22,8 +22,7 @@ public class FavoriteAdapter extends ArrayAdapter<String> {
 
     @Override
     public boolean isEnabled(int position) {
-        // Csak akkor engedélyezett a kattintás, ha delete módban vagyunk
-        return deleteMode;
+        return true;
     }
 
     @Override

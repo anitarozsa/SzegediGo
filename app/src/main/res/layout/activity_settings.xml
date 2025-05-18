@@ -50,15 +50,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/button_style"
-        android:text="Valósághű információkhoz kattints ide"
+        android:text="Valósághű információkért kattints ide"
         app:layout_constraintBottom_toTopOf="@+id/formoreImageView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.493"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/deleteScheduleButton"
         app:layout_constraintVertical_bias="0.19" />
-
-
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>

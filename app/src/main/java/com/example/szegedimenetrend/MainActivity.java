@@ -25,19 +25,14 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 
-public class MainActivity
-        extends AppCompatActivity
-        implements LoaderManager.LoaderCallbacks<String>{
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<String>{
     private static final String LOG_TAG = MainActivity.class.getName();
     private static final String PREF_KEY = MainActivity.class.getPackage().toString();
     private static final int SECRET_KEY = 99;
-
     EditText userNameET;
     EditText passwordET;
-
     private SharedPreferences preferences;
     private FirebaseAuth mAuth;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,7 +50,6 @@ public class MainActivity
 
         preferences = getSharedPreferences(PREF_KEY, MODE_PRIVATE);
         mAuth = FirebaseAuth.getInstance();
-
 
 //        Button anonym = findViewById(R.id.guestLoginButton);
 //        new RandomAsyncTask(anonym).execute();
@@ -108,14 +102,12 @@ public class MainActivity
         });
     }
 
-
     public void register(View view) {
         Intent intent = new Intent(this, RegisterActivity.class);
         intent.putExtra("SECRET_KEY",SECRET_KEY);
         //TODO
         startActivity(intent);
     }
-
 
     @Override
     protected void onStart() {
@@ -128,7 +120,6 @@ public class MainActivity
         super.onStop();
         Log.i(LOG_TAG, "onStop");
     }
-
 
     @Override
     protected void onDestroy() {
@@ -157,7 +148,6 @@ public class MainActivity
         super.onRestart();
         Log.i(LOG_TAG, "onRestart");
     }
-
 
     @NonNull
     @Override

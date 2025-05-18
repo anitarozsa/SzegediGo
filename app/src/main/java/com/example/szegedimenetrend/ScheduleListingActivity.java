@@ -24,13 +24,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class ScheduleListingActivity extends AppCompatActivity {
-
     private FirebaseFirestore db;
     private FirebaseUser user;
     private ArrayList<String> currentFavorites;
     private ArrayList<String> scheduleList = new ArrayList<>();
     private ArrayAdapter<String> adapter;
-
     private static final String TAG = "ScheduleListingActivity";
 
     @Override
@@ -67,8 +65,8 @@ public class ScheduleListingActivity extends AppCompatActivity {
             if (user != null) {
                 db.collection("favorites").document(user.getUid()).get()
                         .addOnSuccessListener(documentSnapshot -> {
+
                             if (documentSnapshot.exists()) {
-                                // Dokumentum létezik → update
                                 db.collection("favorites").document(user.getUid())
                                         .update("favoriteSchedules", FieldValue.arrayUnion(selectedSchedule))
                                         .addOnSuccessListener(aVoid -> {
@@ -81,8 +79,8 @@ public class ScheduleListingActivity extends AppCompatActivity {
                                             Log.e(TAG, "Hiba a kedvenc mentésénél: ", e);
                                             Toast.makeText(ScheduleListingActivity.this, "Nem sikerült a kedvencekhez adni.", Toast.LENGTH_SHORT).show();
                                         });
+
                             } else {
-                                // Dokumentum nem létezik → létrehozzuk
                                 ArrayList<String> initialList = new ArrayList<>();
                                 initialList.add(selectedSchedule);
 

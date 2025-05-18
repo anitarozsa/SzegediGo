@@ -19,7 +19,6 @@ public class RouteActivity extends AppCompatActivity {
         TextView routeTitle = findViewById(R.id.routeTitleTextView);
         ListView stopsListView = findViewById(R.id.stopsListView);
 
-        // Átvett Schedule példány lekérése
         Schedule schedule = getIntent().getParcelableExtra("selectedSchedule");
 
         if (schedule != null) {

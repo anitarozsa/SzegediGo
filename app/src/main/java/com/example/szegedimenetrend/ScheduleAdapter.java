@@ -26,7 +26,6 @@ public class ScheduleAdapter extends RecyclerView.Adapter<ScheduleAdapter.ViewHo
         this.mContext = mContext;
     }
 
-
     @Override
     public ScheduleAdapter.ViewHolder onCreateViewHolder(
             ViewGroup parent, int viewType) {
@@ -52,7 +51,6 @@ public class ScheduleAdapter extends RecyclerView.Adapter<ScheduleAdapter.ViewHo
 
     class ViewHolder extends RecyclerView.ViewHolder {
 
-
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
         }
@@ -60,6 +58,4 @@ public class ScheduleAdapter extends RecyclerView.Adapter<ScheduleAdapter.ViewHo
         public void bindTo(Schedule currentSchedule) {
         }
     }
-
-
 }

@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class StopsActivity extends AppCompatActivity {
-
     private static final String TAG = "StopsActivity";
     private FirebaseFirestore db;
     private ArrayAdapter<String> adapter;
@@ -25,6 +24,7 @@ public class StopsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d("StopsActivity", "StopsActivity elindult");
         setContentView(R.layout.activity_stops);
 
         db = FirebaseFirestore.getInstance();

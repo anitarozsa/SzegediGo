@@ -29,7 +29,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
-
     <ListView
         android:id="@+id/favoriteListView"
         android:layout_width="0dp"
@@ -41,7 +40,6 @@
         app:layout_constraintBottom_toTopOf="@id/addFavoriteButton"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
-
 
     <TextView
         android:id="@+id/searchBarEditText"
@@ -92,6 +90,5 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>

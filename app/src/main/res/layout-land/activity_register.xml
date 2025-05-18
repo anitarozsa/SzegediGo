@@ -104,6 +104,4 @@
             android:text="@string/cancel"/>
 
         </LinearLayout>
-
-
 </RelativeLayout>

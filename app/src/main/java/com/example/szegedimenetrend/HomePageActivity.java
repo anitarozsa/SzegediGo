@@ -33,9 +33,7 @@ public class HomePageActivity extends AppCompatActivity {
     private static final String LOG_TAG = HomePageActivity.class.getName();
     private FirebaseUser user;
     private FirebaseFirestore db;
-
     private static final int REQUEST_CODE = 1;
-
     private ArrayList<String> favoriteSchedules = new ArrayList<>();
     private FavoriteAdapter adapter;
     private TextView infoTextView;
@@ -53,24 +51,19 @@ public class HomePageActivity extends AppCompatActivity {
             return insets;
         });
 
-        // Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setTitle("Kedvenc járataim");
 
-        // Nézetek
-        infoTextView = findViewById(R.id.searchBarEditText); // TextView üres lista esetén
+        infoTextView = findViewById(R.id.searchBarEditText);
         listView = findViewById(R.id.favoriteListView);
 
-        // Delete mód ellenőrzése (ha valami máshol indítaná így)
         boolean deleteMode = getIntent().getBooleanExtra("delete_mode", false);
 
-        // Adapter
         adapter = new FavoriteAdapter(this, favoriteSchedules, deleteMode);
         listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
         listView.setAdapter(adapter);
 
-        // Firebase felhasználó
         user = FirebaseAuth.getInstance().getCurrentUser();
         db = FirebaseFirestore.getInstance();
 
@@ -81,7 +74,6 @@ public class HomePageActivity extends AppCompatActivity {
             finish();
         }
 
-        // Listaelem kattintás csak, ha nem delete mód
         if (deleteMode) {
             findViewById(R.id.addFavoriteButton).setVisibility(View.GONE);
             findViewById(R.id.deleteButton).setVisibility(View.VISIBLE);
@@ -94,7 +86,7 @@ public class HomePageActivity extends AppCompatActivity {
         if (!deleteMode) {
             listView.setOnItemClickListener((parent, view, position, id) -> {
                 String selectedSchedule = favoriteSchedules.get(position);
-                Intent intent = new Intent(this, StopsActivity.class);
+                Intent intent = new Intent(this, StopsActivity.class); // Módosítva: StopsActivity indítása
                 intent.putExtra("scheduleName", selectedSchedule);
                 startActivity(intent);
             });
@@ -103,13 +95,11 @@ public class HomePageActivity extends AppCompatActivity {
                 adapter.toggleSelection(position);
             });
         }
-
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        // Ha visszatérsz a Settings-ből, újra töltjük a kedvenceket
         if (user != null) {
             loadFavoritesFromFirestore();
         }
@@ -126,13 +116,7 @@ public class HomePageActivity extends AppCompatActivity {
                         }
                     }
                     adapter.notifyDataSetChanged();
-
-                    // Üres lista esetén mutassuk az infoTextView-t
-                    if (favoriteSchedules.isEmpty()) {
-                        infoTextView.setVisibility(View.VISIBLE);
-                    } else {
-                        infoTextView.setVisibility(View.GONE);
-                    }
+                    infoTextView.setVisibility(favoriteSchedules.isEmpty() ? View.VISIBLE : View.GONE);
                 })
                 .addOnFailureListener(e -> Log.e("Firestore", "Hiba történt: ", e));
     }
@@ -230,8 +214,6 @@ public class HomePageActivity extends AppCompatActivity {
                 }})
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, "Kijelölt kedvencek törölve", Toast.LENGTH_SHORT).show();
-
-                    // Visszaállás normál módba
                     Intent intent = new Intent(HomePageActivity.this, HomePageActivity.class);
                     intent.putExtra("delete_mode", false);
                     startActivity(intent);
@@ -246,7 +228,4 @@ public class HomePageActivity extends AppCompatActivity {
             infoTextView.setVisibility(View.VISIBLE);
         }
     }
-
-
-
 }

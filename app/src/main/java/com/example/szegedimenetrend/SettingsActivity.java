@@ -3,6 +3,9 @@ package com.example.szegedimenetrend;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -13,29 +16,29 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
 public class SettingsActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_settings); // vagy ahogy a layout fájlod neve van
+        setContentView(R.layout.activity_settings);
 
-        // Toolbar beállítása
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setTitle("Beállítások");
 
-        // Gombok és kép inicializálása
         Button deleteButton = findViewById(R.id.deleteScheduleButton);
         Button formoreButton = findViewById(R.id.formoreButton);
         ImageView formoreImage = findViewById(R.id.formoreImageView);
 
-        // Animáció betöltése és elindítása
         Animation rotateAnimation = AnimationUtils.loadAnimation(this, R.anim.rotate);
         deleteButton.startAnimation(rotateAnimation);
         formoreButton.startAnimation(rotateAnimation);
         formoreImage.startAnimation(rotateAnimation);
 
-        // Törlés gomb működése
         deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -57,7 +60,6 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
-        // További infó gomb működése
         formoreButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -67,5 +69,50 @@ public class SettingsActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.schedule_list_menu, menu);
+
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+
+        if (currentUser == null || currentUser.isAnonymous()) {
+            menu.findItem(R.id.login).setVisible(true);
+            menu.findItem(R.id.logOut).setVisible(false);
+            menu.findItem(R.id.settings).setVisible(false);
+        } else {
+            menu.findItem(R.id.login).setVisible(false);
+            menu.findItem(R.id.logOut).setVisible(true);
+            menu.findItem(R.id.settings).setVisible(true);
+        }
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.logOut) {
+            FirebaseAuth.getInstance().signOut();
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            finish();
+            return true;
+        } else if (id == R.id.settings) {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
+            return true;
+        } else if (id == R.id.login) {
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
+            finish();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 }

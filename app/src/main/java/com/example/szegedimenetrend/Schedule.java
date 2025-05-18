@@ -12,7 +12,6 @@ public class Schedule implements Parcelable {
     private List<String> stops;
 
     public Schedule() {
-        // Firebase-nek szükséges
     }
 
     public Schedule(String scheduleNumber, String routeName, List<String> stops) {
@@ -21,11 +20,10 @@ public class Schedule implements Parcelable {
         this.stops = stops;
     }
 
-    // --- Parcelable konstruktor ---
     protected Schedule(Parcel in) {
         scheduleNumber = in.readString();
         routeName = in.readString();
-        stops = in.createStringArrayList(); // List<String> olvasása
+        stops = in.createStringArrayList();
     }
 
     public static final Creator<Schedule> CREATOR = new Creator<Schedule>() {
@@ -52,7 +50,7 @@ public class Schedule implements Parcelable {
         return 0;
     }
 
-    // --- Getterek és setterek ---
+
     public String getScheduleNumber() {
         return scheduleNumber;
     }

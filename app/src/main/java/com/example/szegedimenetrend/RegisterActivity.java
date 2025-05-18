@@ -24,16 +24,12 @@ public class RegisterActivity extends AppCompatActivity {
     private static final String LOG_TAG = RegisterActivity.class.getName();
     private static final String PREF_KEY = RegisterActivity.class.getPackage().toString();
     private static final int SECRET_KEY = 99;
-
     EditText userNameEditText;
     EditText userEmailEditText;
     EditText passwordEditText;
     EditText passwordAgainEditText;
-
     private SharedPreferences preferences;
     private FirebaseAuth mAuth;
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
