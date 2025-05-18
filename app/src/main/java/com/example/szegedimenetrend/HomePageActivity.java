@@ -7,6 +7,9 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,91 +20,233 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-//Erre az activityre kerülnek majd a kedvenc/elmentett járatok
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
 
 public class HomePageActivity extends AppCompatActivity {
+
     private static final String LOG_TAG = HomePageActivity.class.getName();
     private FirebaseUser user;
+    private FirebaseFirestore db;
+
+    private static final int REQUEST_CODE = 1;
+
+    private ArrayList<String> favoriteSchedules = new ArrayList<>();
+    private FavoriteAdapter adapter;
+    private TextView infoTextView;
+    private ListView listView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_home_page);
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
+        // Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setTitle("Kedvenc járataim");
 
+        // Nézetek
+        infoTextView = findViewById(R.id.searchBarEditText); // TextView üres lista esetén
+        listView = findViewById(R.id.favoriteListView);
 
+        // Delete mód ellenőrzése (ha valami máshol indítaná így)
+        boolean deleteMode = getIntent().getBooleanExtra("delete_mode", false);
 
+        // Adapter
+        adapter = new FavoriteAdapter(this, favoriteSchedules, deleteMode);
+        listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+        listView.setAdapter(adapter);
+
+        // Firebase felhasználó
         user = FirebaseAuth.getInstance().getCurrentUser();
-        if(user != null){
-            Log.d(LOG_TAG, "Authenticated user!");
-        } else{
+        db = FirebaseFirestore.getInstance();
+
+        if (user != null) {
+            loadFavoritesFromFirestore();
+        } else {
             Log.d(LOG_TAG, "Unauthenticated user!");
             finish();
         }
 
+        // Listaelem kattintás csak, ha nem delete mód
+        if (deleteMode) {
+            findViewById(R.id.addFavoriteButton).setVisibility(View.GONE);
+            findViewById(R.id.deleteButton).setVisibility(View.VISIBLE);
+            Toast.makeText(this, "Válaszd ki a törlendő járatokat!", Toast.LENGTH_LONG).show();
+        } else {
+            findViewById(R.id.addFavoriteButton).setVisibility(View.VISIBLE);
+            findViewById(R.id.deleteButton).setVisibility(View.GONE);
+        }
+
+        if (!deleteMode) {
+            listView.setOnItemClickListener((parent, view, position, id) -> {
+                String selectedSchedule = favoriteSchedules.get(position);
+                Intent intent = new Intent(this, StopsActivity.class);
+                intent.putExtra("scheduleName", selectedSchedule);
+                startActivity(intent);
+            });
+        } else {
+            listView.setOnItemClickListener((parent, view, position, id) -> {
+                adapter.toggleSelection(position);
+            });
+        }
+
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Ha visszatérsz a Settings-ből, újra töltjük a kedvenceket
+        if (user != null) {
+            loadFavoritesFromFirestore();
+        }
+    }
+
+    private void loadFavoritesFromFirestore() {
+        db.collection("favorites").document(user.getUid()).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    favoriteSchedules.clear();
+                    if (documentSnapshot.exists()) {
+                        List<String> data = (List<String>) documentSnapshot.get("favoriteSchedules");
+                        if (data != null) {
+                            favoriteSchedules.addAll(data);
+                        }
+                    }
+                    adapter.notifyDataSetChanged();
+
+                    // Üres lista esetén mutassuk az infoTextView-t
+                    if (favoriteSchedules.isEmpty()) {
+                        infoTextView.setVisibility(View.VISIBLE);
+                    } else {
+                        infoTextView.setVisibility(View.GONE);
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("Firestore", "Hiba történt: ", e));
+    }
+
+    public void openScheduleListing(View view) {
+        Intent intent = new Intent(this, ScheduleListingActivity.class);
+        intent.putStringArrayListExtra("currentFavorites", favoriteSchedules);
+        startActivityForResult(intent, REQUEST_CODE);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_CODE && resultCode == RESULT_OK && data != null) {
+            String newSchedule = data.getStringExtra("selectedSchedule");
+            if (newSchedule != null && !favoriteSchedules.contains(newSchedule)) {
+                favoriteSchedules.add(newSchedule);
+                adapter.notifyDataSetChanged();
+
+                db.collection("favorites").document(user.getUid())
+                        .set(new HashMap<String, Object>() {{
+                            put("favoriteSchedules", favoriteSchedules);
+                        }})
+                        .addOnFailureListener(e -> Log.e(LOG_TAG, "Nem sikerült elmenteni a kedvenceket.", e));
+
+                infoTextView.setVisibility(View.GONE);
+            }
+        }
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.schedule_list_menu, menu);
 
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        if (auth.getCurrentUser() != null && auth.getCurrentUser().isAnonymous()) {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+
+        if (currentUser == null || currentUser.isAnonymous()) {
+            menu.findItem(R.id.login).setVisible(true);
             menu.findItem(R.id.logOut).setVisible(false);
             menu.findItem(R.id.settings).setVisible(false);
-
-            menu.findItem(R.id.login).setVisible(true);
+        } else {
+            menu.findItem(R.id.login).setVisible(false);
+            menu.findItem(R.id.logOut).setVisible(true);
+            menu.findItem(R.id.settings).setVisible(true);
         }
 
         return true;
     }
 
-
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int itemId = item.getItemId();
+        int id = item.getItemId();
 
-        if (itemId == R.id.logOut) {
+        if (id == R.id.logOut) {
             FirebaseAuth.getInstance().signOut();
             Intent intent = new Intent(this, MainActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
             finish();
             return true;
-
-        } else if (itemId == R.id.settings) {
-            // TODO: beállítások???
+        } else if (id == R.id.settings) {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
             return true;
-
-        } else if (itemId == R.id.login) {
-            // Visszavisz a bejelentkező képernyőre
-            FirebaseAuth.getInstance().signOut();
+        } else if (id == R.id.login) {
             Intent intent = new Intent(this, MainActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
             finish();
             return true;
+        }
 
-        } else {
-            return super.onOptionsItemSelected(item);
+        return super.onOptionsItemSelected(item);
+    }
+
+    public void deleteFavorites(View view) {
+        Set<Integer> selectedItems = adapter.getSelectedItems();
+        if (selectedItems.isEmpty()) {
+            Toast.makeText(this, "Nincs kijelölt elem a törléshez", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        List<Integer> selectedList = new ArrayList<>(selectedItems);
+        Collections.sort(selectedList, Collections.reverseOrder());
+        for (int position : selectedList) {
+            favoriteSchedules.remove(position);
+        }
+        adapter.clearSelection();
+        adapter.notifyDataSetChanged();
+
+        db.collection("favorites").document(user.getUid())
+                .set(new HashMap<String, Object>() {{
+                    put("favoriteSchedules", favoriteSchedules);
+                }})
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(this, "Kijelölt kedvencek törölve", Toast.LENGTH_SHORT).show();
+
+                    // Visszaállás normál módba
+                    Intent intent = new Intent(HomePageActivity.this, HomePageActivity.class);
+                    intent.putExtra("delete_mode", false);
+                    startActivity(intent);
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Hiba történt a törlés során", Toast.LENGTH_SHORT).show();
+                    Log.e(LOG_TAG, "Nem sikerült frissíteni a Firestore-t.", e);
+                });
+
+        if (favoriteSchedules.isEmpty()) {
+            infoTextView.setVisibility(View.VISIBLE);
         }
     }
 
 
-
-    public void openScheduleListing(View view) {
-        Intent intent = new Intent(this, ScheduleListingActivity.class);
-        startActivity(intent);
-    }
 
 }

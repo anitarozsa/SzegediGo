@@ -16,11 +16,20 @@
             android:name=".ScheduleListingActivity"
             android:exported="false" />
         <activity
+            android:name=".SettingsActivity"
+            android:exported="false" />
+        <activity
             android:name=".HomePageActivity"
             android:exported="false" />
         <activity
             android:name=".RegisterActivity"
             android:exported="false" />
+        <activity
+            android:name=".RouteActivity"
+            android:exported="false"/>
+        <activity
+            android:name=".StopsActivity"
+            android:exported="false"/>
         <activity
             android:name=".MainActivity"
             android:exported="true">

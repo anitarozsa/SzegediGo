@@ -12,4 +12,5 @@
     <string name="addFavorite">Járat hozzáadása</string>
     <string name="savedScheduleInfo">Nincs megjeleníthető kedvenc járatod</string>
     <string name="logOut">Kijelentkezés</string>
+    <string name="delete">Törlés</string>
 </resources>

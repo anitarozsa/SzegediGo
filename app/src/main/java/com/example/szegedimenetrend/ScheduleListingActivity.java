@@ -2,11 +2,10 @@ package com.example.szegedimenetrend;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,100 +15,120 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class ScheduleListingActivity extends AppCompatActivity {
-    private static final String LOG_TAG = ScheduleListingActivity.class.getName();
+
+    private FirebaseFirestore db;
+    private FirebaseUser user;
+    private ArrayList<String> currentFavorites;
+    private ArrayList<String> scheduleList = new ArrayList<>();
+    private ArrayAdapter<String> adapter;
+
+    private static final String TAG = "ScheduleListingActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_schedule_listing);
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        //TODO: még nincs a kiválasztás funkció megvalósítva
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setTitle("Járatok");
 
+        db = FirebaseFirestore.getInstance();
+        user = FirebaseAuth.getInstance().getCurrentUser();
+
+        currentFavorites = getIntent().getStringArrayListExtra("currentFavorites");
+        if (currentFavorites == null) {
+            currentFavorites = new ArrayList<>();
+        }
 
         ListView listView = findViewById(R.id.scheduleListView);
-        String[] scheduleNumbers = {
-                "1", "1A", "2", "3", "3F", "4", "5", "6", "8", "9", "10", "19", "7F", "20", "21", "24",
-                "32", "36", "60", "60Y", "67", "67Y", "70", "71", "71A", "72", "72A", "73", "73Y", "74",
-                "74Y", "75", "76", "77", "77A", "77Y", "78", "78A", "79H", "84", "90", "90F", "90H",
-                "91E", "92E", "93E"
-        };
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_list_item_1, scheduleNumbers);
+        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, scheduleList);
         listView.setAdapter(adapter);
 
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            String selectedSchedule = scheduleList.get(position);
 
+            if (user != null) {
+                db.collection("favorites").document(user.getUid()).get()
+                        .addOnSuccessListener(documentSnapshot -> {
+                            if (documentSnapshot.exists()) {
+                                // Dokumentum létezik → update
+                                db.collection("favorites").document(user.getUid())
+                                        .update("favoriteSchedules", FieldValue.arrayUnion(selectedSchedule))
+                                        .addOnSuccessListener(aVoid -> {
+                                            Intent resultIntent = new Intent();
+                                            resultIntent.putExtra("selectedSchedule", selectedSchedule);
+                                            setResult(RESULT_OK, resultIntent);
+                                            finish();
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            Log.e(TAG, "Hiba a kedvenc mentésénél: ", e);
+                                            Toast.makeText(ScheduleListingActivity.this, "Nem sikerült a kedvencekhez adni.", Toast.LENGTH_SHORT).show();
+                                        });
+                            } else {
+                                // Dokumentum nem létezik → létrehozzuk
+                                ArrayList<String> initialList = new ArrayList<>();
+                                initialList.add(selectedSchedule);
 
+                                db.collection("favorites").document(user.getUid())
+                                        .set(new HashMap<String, Object>() {{
+                                            put("favoriteSchedules", initialList);
+                                        }})
+                                        .addOnSuccessListener(aVoid -> {
+                                            Intent resultIntent = new Intent();
+                                            resultIntent.putExtra("selectedSchedule", selectedSchedule);
+                                            setResult(RESULT_OK, resultIntent);
+                                            finish();
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            Log.e(TAG, "Hiba új dokumentum létrehozásánál: ", e);
+                                            Toast.makeText(ScheduleListingActivity.this, "Nem sikerült a kedvencekhez adni.", Toast.LENGTH_SHORT).show();
+                                        });
+                            }
+                        })
+                        .addOnFailureListener(e -> {
+                            Log.e(TAG, "Hiba a dokumentum lekérdezésekor: ", e);
+                            Toast.makeText(ScheduleListingActivity.this, "Nem sikerült a kedvencekhez adni.", Toast.LENGTH_SHORT).show();
+                        });
+            } else {
+                Toast.makeText(this, "Nincs bejelentkezett felhasználó!", Toast.LENGTH_SHORT).show();
+            }
+        });
 
-
-    }
-    @Override
-    public boolean onSupportNavigateUp() {
-        finish();
-        return true;
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.schedule_list_menu, menu);
-
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        if (auth.getCurrentUser() != null && auth.getCurrentUser().isAnonymous()) {
-            // Elrejtjük a kijelentkezés és beállítások menüpontokat
-            menu.findItem(R.id.logOut).setVisible(false);
-            menu.findItem(R.id.settings).setVisible(false);
-
-            // Megjelenítjük a "Bejelentkezés" menüpontot
-            menu.findItem(R.id.login).setVisible(true);
-        }
-
-        return true;
-    }
-
-
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int itemId = item.getItemId();
-
-        if (itemId == R.id.logOut) {
-            FirebaseAuth.getInstance().signOut();
-            Intent intent = new Intent(this, MainActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            finish();
-            return true;
-
-        } else if (itemId == R.id.settings) {
-            // TODO: beállítások???
-            return true;
-
-        } else if (itemId == R.id.login) {
-            // Visszavisz a bejelentkező képernyőre
-            FirebaseAuth.getInstance().signOut();
-            Intent intent = new Intent(this, MainActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            finish();
-            return true;
-
-        } else {
-            return super.onOptionsItemSelected(item);
-        }
+        loadSchedulesFromFirestore();
     }
 
-
-
+    private void loadSchedulesFromFirestore() {
+        db.collection("schedules").get()
+                .addOnSuccessListener(querySnapshot -> {
+                    scheduleList.clear();
+                    for (DocumentSnapshot doc : querySnapshot) {
+                        String name = doc.getString("name");
+                        if (name != null) {
+                            scheduleList.add(name);
+                        }
+                    }
+                    adapter.notifyDataSetChanged();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Hiba a járatok lekérésekor: ", e);
+                    Toast.makeText(this, "Nem sikerült betölteni a járatokat.", Toast.LENGTH_SHORT).show();
+                });
+    }
 }
